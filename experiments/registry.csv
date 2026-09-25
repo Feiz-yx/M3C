@@ -1,0 +1,1 @@
+experiment_id,hypothesis_id,method,stage,seed,epochs,git_commit,phone_test_mse,phone_test_pcc,word_accuracy_pcc,word_stress_pcc,word_total_pcc,utt_accuracy_pcc,utt_completeness_pcc,utt_fluency_pcc,utt_prosodic_pcc,utt_total_pcc,mdd_f1,mdd_precision,mdd_recall,status,notes
