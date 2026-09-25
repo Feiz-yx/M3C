@@ -10,6 +10,8 @@ import sys
 import os
 import numpy as np
 import time
+import random
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 sys.path.append(os.path.dirname(os.path.dirname(sys.path[0])))
@@ -33,6 +35,8 @@ parser.add_argument("--model", type=str, default='gopt', help="name of the model
 parser.add_argument("--am", type=str, default='librispeech', help="name of the acoustic models")
 parser.add_argument("--noise", type=float, default=0., help="the scale of random noise added on the input GoP feature")
 parser.add_argument("--alpha_mdd", type=float, default=0.3, help="weight for MDD loss")
+parser.add_argument("--seed", type=int, default=None,
+                    help="optional reproducibility seed; default None preserves the original stochastic behavior")
 
 # V/C FEATURE EXTRACTION PARAMETERS
 parser.add_argument("--num_convs_vc", type=int, default=32, help="Number of convolutional kernels of the vowel and consonant feature extractor CNN")
@@ -532,6 +536,20 @@ class GoPDataset(Dataset):
         return self.feat[idx, :], self.phn_label[idx, :, 1], self.dur_feat[idx,:], self.ener_feat[idx,:], self.w2v_feat[idx,:], self.hubert_feat[idx,:], self.wavlm_feat[idx,:], self.phn_label[idx, :, 0],  self.real_phn_label[idx, :], self.utt_label[idx, :], self.word_label[idx, :]
 
 args = parser.parse_args()
+
+# Optional deterministic experiment seed.
+# The original repository did not wire repeat IDs to an actual RNG seed.
+# Keeping the default as None preserves the upstream baseline behavior.
+if args.seed is not None:
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+    if hasattr(torch.backends, "cudnn"):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    print("Experiment seed: {}".format(args.seed))
 
 am = args.am
 print('now train with {:s} acoustic models'.format(am))
